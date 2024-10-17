@@ -11,7 +11,8 @@ function Game() {
     const [currentPlayerIndex, setCurrentPlayerIndex] = useState(0);
     const [winner, setWinner] = useState(null);
     const [showAnimation, setShowAnimation] = useState(false);
-    const [score, setScore] = useState([0, 0]); 
+    const [score, setScore] = useState([0, 0]);
+    const [draw, setDraw] = useState(false); 
 
     useEffect(() => {
         if (winner) {
@@ -30,8 +31,14 @@ function Game() {
             }, 6000);
 
             return () => clearTimeout(timer);
+        } else if (draw) { 
+            const timer = setTimeout(() => {
+                resetGame();
+            }, 3000);
+
+            return () => clearTimeout(timer);
         }
-    }, [winner]);
+    }, [winner, draw]);
 
     const handleNamesSubmit = (player1Name, player2Name) => {
         setPlayers([player1Name, player2Name]);
@@ -68,6 +75,8 @@ function Game() {
         const gameWinner = checkWinner(newBoard);
         if (gameWinner) {
             setWinner(players[currentPlayerIndex]);
+        } else if (newBoard.every((square) => square !== null)) {
+            setDraw(true); 
         } else {
             setCurrentPlayerIndex((prevIndex) => (prevIndex === 0 ? 1 : 0));
         }
@@ -78,6 +87,7 @@ function Game() {
         setCurrentPlayerIndex(0);
         setWinner(null);
         setShowAnimation(false);
+        setDraw(false); 
     };
 
     return (
@@ -88,7 +98,7 @@ function Game() {
                 <>
                     <PlayerStatus currentPlayer={players[currentPlayerIndex]} winner={winner} />
                     <Board squares={board} onSquareClick={handleSquareClick} />
-                    {winner && (
+                    {(winner || draw) && (
                         <button
                             className="mt-6 px-4 py-2 bg-green-800 text-white rounded hover:bg-green-400"
                             onClick={resetGame}
@@ -99,15 +109,21 @@ function Game() {
                     <div className="text-white mt-2">
                         <p> {players[0]} : {score[0]}  </p>
                         <p> {players[1]} : {score[1]}  </p>
-
                     </div>
                 </>
             )}
-            {showAnimation && (
+            {showAnimation && winner && (
                 <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 ">
                     <div className="flex flex-col items-center">
-                        <h2 className="text-6xl font-bold text-green-600 mb-4">{`${winner} win`}</h2>
-                        <img src={animationImage}  className="w-96 h-96 object-contain animate-ping" />
+                        <h2 className="text-6xl font-bold text-green-600 mb-4">{`${winner} wins`}</h2>
+                        <img src={animationImage} className="w-96 h-96 object-contain animate-ping" />
+                    </div>
+                </div>
+            )}
+            {draw && (
+                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 ">
+                    <div className="flex flex-col items-center">
+                        <h2 className="text-6xl font-bold text-red-600 mb-4">It's a draw! Try again.</h2>
                     </div>
                 </div>
             )}
